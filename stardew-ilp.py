@@ -20,10 +20,9 @@ energy_constraints = [] #f @ selection <= e
 pos_constraint = selection >= 0
 budget_constraints = []
 
-total_profits = 0
 for i in range(m):
 
-    total_profits += cp.sum(selection[i] @ (s - b))
+    total_profits = cp.sum(selection[:i] @ (s - b))
     budget_constraints.append(
         selection[i] @ b <= total_profits + g
     )
