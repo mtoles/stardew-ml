@@ -4,25 +4,43 @@ import numpy as np
 
 e = 270 # starting energy
 g = 500 # starting gold
-b = np.array([30, 80, 40, 70, 20, 50, 20, 40, 0])
-s = np.array([50, 175, 60, 110, 35, 80, 30, 30, 58])
-f = np.array([4, 4, 4, 4, 4, 4, 4, 4, 15])
-foraging_arbitrage = np.zeros(len(b))
-foraging_arbitrage[-1] = 1
 
-selection = cp.Variable(len(b), integer=True)
+b = np.array([30, 80])
+s = np.array([50, 175])
+f = np.array([4, 4])
 
-budget_constraint = b @ selection <= g + foraging_arbitrage @ selection * s[-1]
-energy_constraint = f @ selection <= e
+m = 4 # days in a season
+n = len(b) # number of different crops
+#foraging_arbitrage = np.zeros(len(b))
+#foraging_arbitrage[-1] = 1
+
+selection = cp.Variable((m,n), integer=True)
+
+energy_constraints = [] #f @ selection <= e
 pos_constraint = selection >= 0
-revenue = s @ selection
+budget_constraints = []
 
-problem = cp.Problem(cp.Maximize(revenue), [budget_constraint, energy_constraint, pos_constraint])
+total_profits = 0
+for i in range(m):
+
+    total_profits += cp.sum(selection[i] @ (s - b))
+    budget_constraints.append(
+        selection[i] @ b <= total_profits + g
+    )
+
+    energy_constraints.append(
+        cp.sum(selection[i]) * f <= e 
+    )
+
+constraints = budget_constraints + energy_constraints + [pos_constraint]
+profit = sum(selection @ (s-b))
+
+problem = cp.Problem(cp.Maximize(profit), constraints)
 
 problem.solve(solver=cp.GLPK_MI)
 
 print(selection.value)
-print("expenses: ", b @ selection.value)
-print("revenue: ",  s @ selection.value)
-print("profit: ", (s - b) @ selection.value)
+#print("expenses: ", b @ selection.value)
+#print("revenue: ",  s @ selection.value)
+#print("profit: ", (s - b) @ selection.value)
 print()
