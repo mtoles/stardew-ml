@@ -8,12 +8,12 @@ cvxopt.options["maxiters"] = 1000
 e = 270 # starting energy
 g = 500 # starting gold
 
-crop_names = np.array(["jazz", "cauliflower", "garlic"])
-b = np.array([30, 80, 40]) # seed/crop buy price
-s = np.array([50, 175, 60]) # seed/crop sell price
-f = np.array([2, 2, 2]) # planting energy cost
-w = np.array([2, 2, 2]) # watering energy cost
-t = np.array([7, 12, 4]) # growing time
+crop_names = np.array(["jazz", "cauliflower"])
+b = np.array([30, 80]) # seed/crop buy price
+s = np.array([50, 175]) # seed/crop sell price
+f = np.array([2, 2]) # planting energy cost
+w = np.array([2, 2]) # watering energy cost
+t = np.array([7, 12]) # growing time
 
 m = 28 # days in a season
 n = len(b) # number of different crops
@@ -43,10 +43,11 @@ for i in range(m): # i = today
     watering_costs = np.multiply(watering_relevancy, w)
     planting_costs = np.multiply(planting_relevancy, f)
     
-    energy_demands.append(sum(cp.multiply(selection, (watering_costs + planting_costs))))
-    energy_constraints = cp.hstack(energy_demands) <= e
+    energy_demand = cp.sum(sum(cp.multiply(selection, (watering_costs + planting_costs)))) <= e
+    energy_demands.append(energy_demand)
+    #energy_constraints = cp.hstack(energy_demands) <= e
 
-constraints = budget_constraints + [energy_constraints] + [pos_constraint]
+constraints = budget_constraints + energy_demands + [pos_constraint]
 profit = sum(selection @ (s-b))
 
 problem = cp.Problem(cp.Maximize(profit), constraints)
