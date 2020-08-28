@@ -26,12 +26,30 @@ energy_demands = [] #f @ selection <= e
 pos_constraint = selection >= 0
 budget_constraints = []
 
-# create budget constraints for each of m days
+# create constraints for each of m days
 for i in range(m): # i = today
+    # budget constraints
+    '''
     total_profits = cp.sum(selection[:i] @ (s - b))
     budget_constraints.append(
         selection[i] @ b <= total_profits + g
     )
+    '''
+    expense_relevancy = np.zeros((m, n))
+    revenue_relevancy = np.zeros((m, n))
+    for k in range(m): # each day
+        for l in range(n): # each crop
+            if k <= i: # the buy date is on or before today
+                expense_relevancy[k,l] = 1 
+            if k+t[l] <= i: # the sell date is on or before today
+                revenue_relevancy[k,l] = 1
+    expenses = np.multiply(expense_relevancy, b) # TODO: replace 1 with b in line 3 lines before and delete this line.
+    revenue = np.multiply(revenue_relevancy, s)
+
+    budget_constraint = cp.sum(sum(cp.multiply(selection, (expenses + revenue)))) <= g
+    budget_constraints.append(budget_constraint)
+
+    # energy constraints
     watering_relevancy = np.zeros((m, n))
     planting_relevancy = np.zeros((m, n))
     for k in range(m): # each day
