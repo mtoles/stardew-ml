@@ -73,13 +73,20 @@ print(selection.value)
 # Results
 df = pd.DataFrame(selection.value)
 df.columns = crop_names
-planted_names = ["planted " + x for x in crop_names]
-df = df.reindex(df.columns.tolist() + planted_names, axis=1)
+planted_names = ["planted " + x for x in crop_names] 
+df = df.reindex(df.columns.tolist() + planted_names + ["energy expended"], axis=1)
 df = df.fillna(0)
 for i, results_col in enumerate(planted_names):
     for j, row in enumerate(range(len(df))):
         df[results_col].iloc[row] += df[df.columns[i]][max(0, j-t[i]):j+1].sum()
-    pass
+for i, row in enumerate(df["energy expended"]):
+    energy_expended = 0
+    for j, crop in enumerate(crop_names):
+        energy_expended += f[j] * df[crop].iloc[i]
+    for j, planted_crop in enumerate(planted_names):
+        energy_expended += w[j] * df[planted_crop].iloc[i]
+    df["energy expended"].iloc[i] = energy_expended
+    
 
 print(df)
 
