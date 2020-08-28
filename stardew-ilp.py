@@ -73,7 +73,13 @@ print(selection.value)
 # Results
 df = pd.DataFrame(selection.value)
 df.columns = crop_names
-
+planted_names = ["planted " + x for x in crop_names]
+df = df.reindex(df.columns.tolist() + planted_names, axis=1)
+df = df.fillna(0)
+for i, results_col in enumerate(planted_names):
+    for j, row in enumerate(range(len(df))):
+        df[results_col].iloc[row] += df[df.columns[i]][max(0, j-t[i]):j+1].sum()
+    pass
 
 print(df)
 
