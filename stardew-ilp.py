@@ -3,7 +3,12 @@ import numpy as np
 import pandas as pd
 import sys
 import matplotlib.pyplot as plt
-# trees on average produce 58g worth of materials
+# trees on average produce 50g worth of materials and take 30 energy to harvest
+# assumptions:
+    # you cannot hoe ground without planting something in it
+    # you water crops every day
+    # time is not a constraint
+
 import cvxopt.solvers as cvxopt
 cvxopt.options["maxiters"] = 1000
 
@@ -35,14 +40,20 @@ for crop in crops:
     w.append(crop.w)
     regrowth.append(crop.regrowth)
 print(crops)
+
+
+
+
+
+
+
+
 crop_names = np.array(["jazz", "cauliflower", "garlic", "green bean", "kale", "parsnip", "potato", "tulip", "rice", "foraging"])
 b = np.array([30, 80, 40, 60, 70, 20, 50, 20, 40, 0]) # seed/crop buy price
-#crop_names = np.array(["jazz", "cauliflower", "foraging"])
-#b = np.array([30, 80, 0]) # seed/crop buy price
-#s = np.array([50, 175, 60, 40, 110, 35, 80, 30, 30, 50]) # seed/crop sell price
-#t = np.array([7, 12, 4, 10, 6, 4, 6, 6, 8, 0]) # growing time
-#f = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 30]) # planting energy cost
-#w = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 0]) # watering energy cost
+s = np.array([50, 175, 60, 40, 110, 35, 80, 30, 30, 50]) # seed/crop sell price
+t = np.array([7, 12, 4, 10, 6, 4, 6, 6, 8, 0]) # growing time
+f = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 30]) # planting energy cost
+w = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 0]) # watering energy cost
 
 m = 28 # days in a season
 n = len(b) # number of different crops
@@ -105,7 +116,7 @@ problem.solve(solver=cp.CBC, verbose=True, allowablePercentageGap=2)
 
 ########################################################################################################################################
 
-print(selection.value)
+#print(selection.value)
 #print("expenses: ", b @ selection.value)
 #print("revenue: ",  s @ selection.value)
 #print("profit: ", (s - b) @ selection.value)
@@ -130,6 +141,61 @@ for i, row in enumerate(df["energy expended"]):
         energy_expended += w[j] * df[planted_crop].iloc[i]
     df["energy expended"].iloc[i] = energy_expended
     
+# Benchmarking
+crop_id = 0
+crop_name = crop_names[crop_id]
+def get_benchmark_planting_quantity(cash_budget, energy_budget):
+    energy_constrained_count = energy_budget // (f[crop_id]+w[crop_id])
+    cash_constrained_count = cash_budget // b[crop_id]
+    return min(energy_constrained_count, cash_constrained_count)
+def calculate_next_benchmark_row(i, df):
+    if i == 0:
+        previous_row = pd.Series().reindex_like(df.iloc[0]).fillna(0)
+        previous_row["cash on hand"] = g
+    else:
+        previous_row = df.iloc[i-1]
+    
+    new_row = pd.Series().reindex_like(previous_row)
+
+
+    if i % t[crop_id] == 0:
+        crop_revenue = df[crop_name].iloc[i-t[crop_id]] * s[crop_id]
+        cash_budget = crop_revenue + previous_row["cash on hand"]
+        energy_budget = e
+        new_row[crop_name] = get_benchmark_planting_quantity(cash_budget, energy_budget)
+        remaining_energy = e - new_row[crop_name] * (w[crop_id] + f[crop_id])
+        new_row["foraging"] = remaining_energy // f[-1]
+        new_row["energy expended"] = new_row["foraging"] * f[-1] + new_row[crop_name] * (w[crop_id] + f[crop_id])
+        new_row["daily expense"] = new_row[crop_name] * b[crop_id]
+        new_row["daily revenue"] = crop_revenue + new_row["foraging"] * s[-1] 
+        new_row["cash on hand"] = previous_row["cash on hand"] + new_row["daily revenue"] - new_row["daily expense"]
+        new_row["p. " + crop_name] = new_row[crop_name]
+
+    else:
+        crop_revenue = 0
+        cash_budget = crop_revenue + previous_row["cash on hand"]
+        energy_budget = e
+        new_row[crop_name] = 0
+        new_row["p. " + crop_name] = previous_row["p. " + crop_name]
+        remaining_energy = e - new_row[crop_name] * (w[crop_id] + f[crop_id]) - previous_row["p. " + crop_name] * w[crop_id]
+        new_row["foraging"] = remaining_energy // f[-1]
+        new_row["energy expended"] = new_row["foraging"] * f[-1] + new_row["p. " + crop_name] * (w[crop_id])
+        new_row["daily expense"] = new_row[crop_name] * b[crop_id]
+        new_row["daily revenue"] = crop_revenue + new_row["foraging"] * s[-1] 
+        new_row["cash on hand"] = previous_row["cash on hand"] + new_row["daily revenue"] - new_row["daily expense"]
+    pass
+    return new_row
+
+
+benchmark_df = pd.DataFrame().reindex_like(df).fillna(0)
+for i, row in enumerate(df.iterrows()):
+    benchmark_df.iloc[i] = calculate_next_benchmark_row(i, benchmark_df)
+print(benchmark_df[["jazz", "foraging", "p. jazz", "energy expended", "daily expense", "daily revenue", "cash on hand"]])
+pass
+
+
+
+
 # Budget Results
 current_budget = g
 for i, row in df.iterrows():
