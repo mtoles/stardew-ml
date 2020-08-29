@@ -8,14 +8,14 @@ cvxopt.options["maxiters"] = 1000
 e = 270 # starting energy
 g = 500 # starting gold
 
-#crop_names = np.array(["jazz", "cauliflower", "garlic", "green bean", "kale", "parsnip", "potato", "rhubarb", "strawberry", "tulip", "rice", "foraging"])
-#b = np.array([30, 80, 40, 60, 70, 20, 50, 100, 100, 20, 40, 20, ]) # seed/crop buy price
-crop_names = np.array(["jazz", "cauliflower", "foraging"])
-b = np.array([30, 80, 0]) # seed/crop buy price
-s = np.array([80, 175, 50]) # seed/crop sell price
-f = np.array([2, 2, 30]) # planting energy cost
-w = np.array([2, 2, 0]) # watering energy cost
-t = np.array([7, 12, 0]) # growing time
+crop_names = np.array(["jazz", "cauliflower", "garlic", "green bean", "kale", "parsnip", "potato", "tulip", "rice", "foraging"])
+b = np.array([30, 80, 40, 60, 70, 20, 50, 20, 40, 0]) # seed/crop buy price
+#crop_names = np.array(["jazz", "cauliflower", "foraging"])
+#b = np.array([30, 80, 0]) # seed/crop buy price
+s = np.array([50, 175, 60, 40, 110, 35, 80, 30, 30, 50]) # seed/crop sell price
+f = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 30]) # planting energy cost
+w = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 0]) # watering energy cost
+t = np.array([7, 12, 4, 10, 6, 4, 6, 6, 8, 0]) # growing time
 
 m = 28 # days in a season
 n = len(b) # number of different crops
@@ -87,7 +87,7 @@ print(selection.value)
 # Results
 df = pd.DataFrame(selection.value)
 df.columns = crop_names
-planted_names = ["planted " + x for x in crop_names] 
+planted_names = ["p. " + x for x in crop_names] 
 df = df.reindex(df.columns.tolist() + planted_names + ["energy expended", "daily expense", "daily revenue", "cash on hand"], axis=1)
 df = df.fillna(0)
 
