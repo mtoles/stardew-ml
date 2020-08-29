@@ -5,15 +5,17 @@ import pandas as pd
 import cvxopt.solvers as cvxopt
 cvxopt.options["maxiters"] = 1000
 
-e = 250 # starting energy
+e = 270 # starting energy
 g = 500 # starting gold
 
-crop_names = np.array(["jazz", "cauliflower"])
-b = np.array([10, 20]) # seed/crop buy price
-s = np.array([20, 40]) # seed/crop sell price
-f = np.array([2, 2]) # planting energy cost
-w = np.array([2, 2]) # watering energy cost
-t = np.array([2, 2]) # growing time
+#crop_names = np.array(["jazz", "cauliflower", "garlic", "green bean", "kale", "parsnip", "potato", "rhubarb", "strawberry", "tulip", "rice", "foraging"])
+#b = np.array([30, 80, 40, 60, 70, 20, 50, 100, 100, 20, 40, 20, ]) # seed/crop buy price
+crop_names = np.array(["jazz", "cauliflower", "foraging"])
+b = np.array([30, 80, 0]) # seed/crop buy price
+s = np.array([80, 175, 50]) # seed/crop sell price
+f = np.array([2, 2, 30]) # planting energy cost
+w = np.array([2, 2, 0]) # watering energy cost
+t = np.array([7, 12, 0]) # growing time
 
 m = 28 # days in a season
 n = len(b) # number of different crops
