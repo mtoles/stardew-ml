@@ -46,7 +46,8 @@ for i in range(m): # i = today
     expenses = np.multiply(expense_relevancy, b) # TODO: replace 1 with b in line 3 lines before and delete this line.
     revenue = np.multiply(revenue_relevancy, s)
 
-    budget_constraint = cp.sum(sum(cp.multiply(selection, (expenses + revenue)))) <= g
+
+    budget_constraint = cp.sum(sum(cp.multiply(selection, (revenue - expenses)))) + g >= 0 #+ cp.sum(sum(cp.multiply(selection, (expenses))))
     budget_constraints.append(budget_constraint)
 
     # energy constraints
@@ -70,7 +71,7 @@ profit = sum(selection @ (s-b))
 
 problem = cp.Problem(cp.Maximize(profit), constraints)
 
-problem.solve(solver=cp.CBC, verbose=True)
+problem.solve(solver=cp.CBC, verbose=True, allowablePercentageGap=1)
 
 print(selection.value)
 #print("expenses: ", b @ selection.value)
