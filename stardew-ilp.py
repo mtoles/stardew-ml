@@ -1,6 +1,8 @@
 import cvxpy as cp
 import numpy as np
 import pandas as pd
+import sys
+import matplotlib.pyplot as plt
 # trees on average produce 58g worth of materials
 import cvxopt.solvers as cvxopt
 cvxopt.options["maxiters"] = 1000
@@ -8,14 +10,39 @@ cvxopt.options["maxiters"] = 1000
 e = 270 # starting energy
 g = 500 # starting gold
 
+class Crop:
+    def __init__(self, name, b, s, t, f=2, w=2, regrowth=sys.maxsize):
+        self.name = name
+        self.b = b
+        self.s = s
+        self.t = t
+        self.f = f
+        self.w = w
+        self.regrowth = regrowth
+
+crops = [
+    Crop("jazz", 30, 50, 7),
+    Crop("cauliflower", 80, 175, 12)
+]
+
+crop_names = b = s = t = f = w = regrowth = []
+for crop in crops:
+    crop_names.append(crop.name)
+    b.append(crop.b)
+    s.append(crop.s)
+    t.append(crop.t)
+    f.append(crop.f)
+    w.append(crop.w)
+    regrowth.append(crop.regrowth)
+print(crops)
 crop_names = np.array(["jazz", "cauliflower", "garlic", "green bean", "kale", "parsnip", "potato", "tulip", "rice", "foraging"])
 b = np.array([30, 80, 40, 60, 70, 20, 50, 20, 40, 0]) # seed/crop buy price
 #crop_names = np.array(["jazz", "cauliflower", "foraging"])
 #b = np.array([30, 80, 0]) # seed/crop buy price
-s = np.array([50, 175, 60, 40, 110, 35, 80, 30, 30, 50]) # seed/crop sell price
-f = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 30]) # planting energy cost
-w = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 0]) # watering energy cost
-t = np.array([7, 12, 4, 10, 6, 4, 6, 6, 8, 0]) # growing time
+#s = np.array([50, 175, 60, 40, 110, 35, 80, 30, 30, 50]) # seed/crop sell price
+#t = np.array([7, 12, 4, 10, 6, 4, 6, 6, 8, 0]) # growing time
+#f = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 30]) # planting energy cost
+#w = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 0]) # watering energy cost
 
 m = 28 # days in a season
 n = len(b) # number of different crops
@@ -117,7 +144,9 @@ for i, row in df.iterrows():
 
 print(df)
 
-
+df[["cash on hand", "daily revenue", "daily expense"]].plot()
+df[["p. jazz", "p. cauliflower", "p. garlic", "p. green bean", "p. kale", "p. parsnip", "p. potato", "p. tulip", "p. rice", "foraging"]].plot()
+plt.show()
 
 
 print()
