@@ -29,7 +29,7 @@ crops = [
     Crop("jazz", 30, 50, 7),
     Crop("cauliflower", 80, 175, 12),
     Crop("garlic", 40, 60, 4),
-    Crop("green bean", 60, 40, 10, 3),
+    Crop("green bean", 60, 40, 10, regrowth=3),
     Crop("kale", 70, 110, 6),
     Crop("parsnip", 20, 35, 4),
     Crop("potato", 50, 80, 6),
@@ -55,20 +55,6 @@ for crop in crops:
     regrowth.append(crop.regrowth)
 print(crops)
 
-
-
-
-
-
-'''
-
-crop_names = np.array(["jazz", "cauliflower", "garlic", "green bean", "kale", "parsnip", "potato", "tulip", "rice", "foraging"])
-b = np.array([30, 80, 40, 60, 70, 20, 50, 20, 40, 0]) # seed/crop buy price
-s = np.array([50, 175, 60, 40, 110, 35, 80, 30, 30, 50]) # seed/crop sell price
-t = np.array([7, 12, 4, 10, 6, 4, 6, 6, 8, 0]) # growing time
-f = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 30]) # planting energy cost
-w = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 0]) # watering energy cost
-'''
 m = 28 # days in a season
 n = len(b) # number of different crops
 #foraging_arbitrage = np.zeros(len(b))
@@ -96,7 +82,8 @@ for i in range(m): # i = today
             if k <= i: # the buy date is on or before today
                 expense_relevancy[k,l] = 1 
             if k+t[l] <= i: # the sell date is on or before today
-                revenue_relevancy[k,l] = 1
+                revenue_relevancy[k,l] = 1 + (i - k - t[l]) // crops[l].regrowth
+
     expenses = np.multiply(expense_relevancy, b) # TODO: replace 1 with b in line 3 lines before and delete this line.
     revenue = np.multiply(revenue_relevancy, s)
 
@@ -110,6 +97,8 @@ for i in range(m): # i = today
     for k in range(m): # each day
         for l in range(n): # each crop
             if k <= i and k+t[l] > i: # the day is before today but within the growing period
+                watering_relevancy[k,l] = 1
+            if k <= i and regrowth[l] != sys.maxsize and m - k >= regrowth[l]:
                 watering_relevancy[k,l] = 1
             if k == i:
                 planting_relevancy[k,l] = 1
@@ -146,7 +135,11 @@ df = df.fillna(0)
 # Energy Results
 for i, results_col in enumerate(planted_names):
     for j, row in enumerate(range(len(df))):
-        df[results_col].iloc[row] += df[df.columns[i]][max(0, j-t[i]+1):j+1].sum()
+        if crops[i].regrowth == sys.maxsize:
+            watering_start_day = j-t[i]+1
+        else:
+            watering_start_day = 0
+        df[results_col].iloc[row] += df[df.columns[i]][max(0, watering_start_day):j+1].sum() #TODO: fix calculation for regrowing crops
 for i, row in enumerate(df["energy expended"]):
     energy_expended = 0
     for j, crop in enumerate(crop_names):
@@ -216,16 +209,24 @@ for i, row in df.iterrows():
     row["daily expense"] = np.sum(np.multiply(np.array(row[crop_names]), b))
     for j, crop in enumerate(crop_names):
         if i - t[j] >= 0:
-            row["daily revenue"] += df[crop].iloc[i-t[j]] * s[j]
+            k = i - t[j]
+            while k >= 0:
+                row["daily revenue"] += df[crop].iloc[k] * s[j] 
+                k -= crops[j].regrowth
+        # revenue_relevancy[k,l] = 1 + (i - k - t[l]) // crops[l].regrowth
+
     if i == 0:
         row["cash on hand"] = 500 + row["daily revenue"] - row["daily expense"]
+
     else:
         row["cash on hand"] = df["cash on hand"].iloc[i-1] + row["daily revenue"] - row["daily expense"]
 
 print(df)
 
 df[["cash on hand", "daily revenue", "daily expense"]].plot()
-df[["p. jazz", "p. cauliflower", "p. garlic", "p. green bean", "p. kale", "p. parsnip", "p. potato", "p. tulip", "foraging"]].plot()
+planted_crop_names = ["p. " + crop for crop in crop_names]
+display_columns = list(set(planted_crop_names) - set(["p. foraging"])) + ["foraging"]
+df[display_columns].plot()
 plt.show()
 
 
