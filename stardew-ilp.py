@@ -27,10 +27,24 @@ class Crop:
 
 crops = [
     Crop("jazz", 30, 50, 7),
-    Crop("cauliflower", 80, 175, 12)
+    Crop("cauliflower", 80, 175, 12),
+    Crop("garlic", 40, 60, 4),
+    Crop("green bean", 60, 40, 10, 3),
+    Crop("kale", 70, 110, 6),
+    Crop("parsnip", 20, 35, 4),
+    Crop("potato", 50, 80, 6),
+    Crop("tulip", 20, 30, 6),
+    Crop("foraging", 0, 50, 0, f=30, w=0)
 ]
 
-crop_names = b = s = t = f = w = regrowth = []
+crop_names = []
+b = []
+s = []
+t = []
+f = []
+w = []
+regrowth = []
+
 for crop in crops:
     crop_names.append(crop.name)
     b.append(crop.b)
@@ -46,7 +60,7 @@ print(crops)
 
 
 
-
+'''
 
 crop_names = np.array(["jazz", "cauliflower", "garlic", "green bean", "kale", "parsnip", "potato", "tulip", "rice", "foraging"])
 b = np.array([30, 80, 40, 60, 70, 20, 50, 20, 40, 0]) # seed/crop buy price
@@ -54,7 +68,7 @@ s = np.array([50, 175, 60, 40, 110, 35, 80, 30, 30, 50]) # seed/crop sell price
 t = np.array([7, 12, 4, 10, 6, 4, 6, 6, 8, 0]) # growing time
 f = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 30]) # planting energy cost
 w = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 0]) # watering energy cost
-
+'''
 m = 28 # days in a season
 n = len(b) # number of different crops
 #foraging_arbitrage = np.zeros(len(b))
@@ -190,7 +204,7 @@ def calculate_next_benchmark_row(i, df):
 benchmark_df = pd.DataFrame().reindex_like(df).fillna(0)
 for i, row in enumerate(df.iterrows()):
     benchmark_df.iloc[i] = calculate_next_benchmark_row(i, benchmark_df)
-print(benchmark_df[["jazz", "foraging", "p. jazz", "energy expended", "daily expense", "daily revenue", "cash on hand"]])
+#print(benchmark_df[["jazz", "foraging", "p. jazz", "energy expended", "daily expense", "daily revenue", "cash on hand"]])
 pass
 
 
@@ -211,7 +225,7 @@ for i, row in df.iterrows():
 print(df)
 
 df[["cash on hand", "daily revenue", "daily expense"]].plot()
-df[["p. jazz", "p. cauliflower", "p. garlic", "p. green bean", "p. kale", "p. parsnip", "p. potato", "p. tulip", "p. rice", "foraging"]].plot()
+df[["p. jazz", "p. cauliflower", "p. garlic", "p. green bean", "p. kale", "p. parsnip", "p. potato", "p. tulip", "foraging"]].plot()
 plt.show()
 
 
