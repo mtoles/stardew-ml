@@ -121,7 +121,6 @@ starting_condition_matrix[0,parsnip_index] = starting_parsnips
 starting_condition_constraint = selection >= starting_condition_matrix
 
 constraints = budget_constraints + energy_demands + [pos_constraint] + [starting_condition_constraint]
-#profit = sum(selection @ (s-b))
 profit = cp.sum(sum(cp.multiply(selection, (revenue - expenses))))
 
 problem = cp.Problem(cp.Maximize(profit), constraints)
@@ -160,7 +159,7 @@ for i, row in enumerate(df["energy expended"]):
     df["energy expended"].iloc[i] = energy_expended
     
 # Benchmarking
-crop_id = 0
+crop_id = parsnip_index
 crop_name = crop_names[crop_id]
 def get_benchmark_planting_quantity(cash_budget, energy_budget):
     energy_constrained_count = energy_budget // (f[crop_id]+w[crop_id])
@@ -208,7 +207,7 @@ def calculate_next_benchmark_row(i, df):
 benchmark_df = pd.DataFrame().reindex_like(df).fillna(0)
 for i, row in enumerate(df.iterrows()):
     benchmark_df.iloc[i] = calculate_next_benchmark_row(i, benchmark_df)
-#print(benchmark_df[["jazz", "foraging", "p. jazz", "energy expended", "daily expense", "daily revenue", "cash on hand"]])
+print(benchmark_df[["parsnip", "foraging", "p. parsnip", "energy expended", "daily expense", "daily revenue", "cash on hand"]])
 pass
 
 
@@ -234,10 +233,56 @@ for i, row in df.iterrows():
 
 print(df)
 
-df[["cash on hand", "daily revenue", "daily expense"]].plot()
+# real cash graph
+fig1 = plt.figure()
+ax1 = fig1.add_subplot(111)
+ax1.set_xlabel("day")
+ax1.set_ylabel("gold")
+plt.xlim(0, 27)
+plt.ylim(0, 25000)
+cash_columns = ["cash on hand", "daily revenue", "daily expense"]
+ax1.plot(df[cash_columns])
+ax1.legend(cash_columns)
+
+fig2 = plt.figure()
+ax2 = fig2.add_subplot(111)
+ax2.set_xlabel("day")
+ax2.set_ylabel("count")
+plt.xlim(0, 27)
+plt.ylim(0, 100)
+
+# real crop planting graph
 planted_crop_names = ["p. " + crop for crop in crop_names]
-display_columns = list(set(planted_crop_names) - set(["p. foraging"])) + ["foraging"]
-df[display_columns].plot()
+for i, crop in enumerate(planted_crop_names):
+    if crop == "p. foraging":
+        planted_crop_names[i] = "foraging"
+#display_columns = list(set(planted_crop_names) - set(["p. foraging"])) + ["foraging"]
+ax2.plot(df[planted_crop_names])
+ax2.legend(crop_names + ["Foraging"])
+
+# benchmark cash graph
+fig3 = plt.figure()
+ax3 = fig3.add_subplot(111)
+ax3.set_xlabel("day")
+ax3.set_ylabel("gold")
+plt.xlim(0, 27)
+plt.ylim(0, 25000)
+ax3.plot(benchmark_df[cash_columns])
+ax3.legend(cash_columns)
+
+# benchmark crop planting graph
+fig4 = plt.figure()
+ax4 = fig4.add_subplot(111)
+ax4.set_xlabel("day")
+ax4.set_ylabel("count")
+plt.xlim(0, 27)
+plt.ylim(0,100)
+
+benchmark_planted_crop_names = ["p. " + crops[crop_id].name]
+benchmark_display_columns = benchmark_planted_crop_names + ["foraging"]
+ax4.plot(benchmark_df[benchmark_display_columns])
+ax4.legend(["parsnips","foraging"])
+
 plt.show()
 
 
