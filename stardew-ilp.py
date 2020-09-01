@@ -13,7 +13,7 @@ import cvxopt.solvers as cvxopt
 cvxopt.options["maxiters"] = 1000
 
 e = 270 # starting energy
-g = 500 # starting gold
+g = 800 # starting gold
 
 class Crop:
     def __init__(self, name, b, s, t, f=2, w=2, regrowth=sys.maxsize):
@@ -109,7 +109,18 @@ for i in range(m): # i = today
     energy_demands.append(energy_demand)
     #energy_constraints = cp.hstack(energy_demands) <= e
 
-constraints = budget_constraints + energy_demands + [pos_constraint]
+# Start with 15 parsnip seeds
+starting_condition_matrix = np.zeros((m,n))
+def get_parsnip_index():
+    for i, crop in enumerate(crops):
+        if crop.name == "parsnip":
+            return i
+parsnip_index = get_parsnip_index()
+starting_parsnips = 15
+starting_condition_matrix[0,parsnip_index] = starting_parsnips
+starting_condition_constraint = selection >= starting_condition_matrix
+
+constraints = budget_constraints + energy_demands + [pos_constraint] + [starting_condition_constraint]
 #profit = sum(selection @ (s-b))
 profit = cp.sum(sum(cp.multiply(selection, (revenue - expenses))))
 
@@ -216,7 +227,7 @@ for i, row in df.iterrows():
         # revenue_relevancy[k,l] = 1 + (i - k - t[l]) // crops[l].regrowth
 
     if i == 0:
-        row["cash on hand"] = 500 + row["daily revenue"] - row["daily expense"]
+        row["cash on hand"] = g + row["daily revenue"] - row["daily expense"]
 
     else:
         row["cash on hand"] = df["cash on hand"].iloc[i-1] + row["daily revenue"] - row["daily expense"]
