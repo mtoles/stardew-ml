@@ -1,29 +1,5 @@
-# Foobar
+# Optimizing crop planting with mixed integer linear programming in Stardew Valley
 
-Foobar is a Python library for dealing with word pluralization.
+This project contains the source code for my essay, Optimizing crop planting with mixed integer linear programming in Stardew Valley, which can be found here:
 
-## Installation
-
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
-
-```bash
-pip install foobar
-```
-
-## Usage
-
-```python
-import foobar
-
-foobar.pluralize('word') # returns 'words'
-foobar.pluralize('goose') # returns 'geese'
-foobar.singularize('phenomena') # returns 'phenomenon'
-```
-
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-## License
-[MIT](https://choosealicense.com/licenses/mit/)
+https://www.matoles.com/stardew-mip.html
